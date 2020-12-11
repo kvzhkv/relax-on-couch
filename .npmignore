@@ -1,0 +1,8 @@
+/node_modules
+.prettierrc
+/.github
+/.vscode
+/src
+tsconfig.json
+README.md
+!/lib
