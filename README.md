@@ -1,2 +1,5 @@
-# relax-on-couch
+# Relax on Couch
+
 CouchDB client for Node.js
+
+WIP
