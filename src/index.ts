@@ -107,14 +107,14 @@ class RelaxOnCouch {
 
     public async allDocs<D>(
         params: RoCAllDocsParams,
-    ): Promise<RoCViewResponse<D>> {
+    ): Promise<RoCViewResponse<D, string, { rev: string }>> {
         return await this.request(`${this.url}/_all_docs`, "POST", params);
     }
 
-    public async query<D>(
+    public async query<D, K, V>(
         path: string,
         params: RoCQueryParams,
-    ): Promise<RoCViewResponse<D>> {
+    ): Promise<RoCViewResponse<D, K, V>> {
         const [designDocId, viewName] = path.split("/");
         return await this.request(
             `${this.url}/_design/${designDocId}/_view/${viewName}`,
