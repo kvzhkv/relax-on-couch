@@ -1,4 +1,9 @@
 declare namespace RelaxOnCouch {
+    interface DocMeta {
+        _id: string;
+        _rev?: string;
+    }
+
     interface AllDocsParams {
         keys?: string[];
         startkey?: string;
@@ -7,11 +12,6 @@ declare namespace RelaxOnCouch {
         limit?: number;
         include_docs?: boolean;
         descending?: boolean;
-    }
-
-    interface DocMeta {
-        _id: string;
-        _rev?: string;
     }
 
     interface QueryParams {
@@ -23,6 +23,8 @@ declare namespace RelaxOnCouch {
         endkey?: string | number | object | (number | string | object)[];
         include_docs?: boolean;
         descending?: boolean;
+        reduce?: boolean;
+        group?: boolean;
     }
 
     interface SearchParams {
