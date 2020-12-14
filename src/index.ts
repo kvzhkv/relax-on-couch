@@ -1,60 +1,5 @@
+/// <reference path="models.ts" />
 import fetch from "node-fetch";
-
-interface RoCAllDocsParams {
-    keys?: string[];
-    startkey?: string;
-    endkey?: string;
-    skip?: number;
-    limit?: number;
-    include_docs?: boolean;
-    descending?: boolean;
-}
-
-interface RoCQueryParams {
-    key?: string;
-    keys?: string[];
-    skip?: number;
-    limit?: number;
-    startkey?: string | number | object | (number | string | object)[];
-    endkey?: string | number | object | (number | string | object)[];
-    include_docs?: boolean;
-    descending?: boolean;
-}
-
-interface RoCSearchParams {
-    query: string;
-    limit?: number;
-    include_docs?: boolean;
-    bookmark?: string;
-}
-
-interface RoCViewResponse<D, K = string, V = string> {
-    total_rows: number;
-    offset: number;
-    rows: {
-        id: string;
-        key: K;
-        value: V;
-        doc?: D;
-    }[];
-}
-
-export interface RoCSearchResponse<D> {
-    total_rows: number;
-    bookmark: string;
-    rows: {
-        id: string;
-        order: any;
-        fields: any;
-        doc?: D;
-    }[];
-}
-
-interface RoCBasicResponse {
-    id: string;
-    rev: string;
-    ok: boolean;
-}
 
 class RelaxOnCouch {
     private url: string;
@@ -91,30 +36,32 @@ class RelaxOnCouch {
         return await this.request(`${this.url}/${docId}`, "GET");
     }
 
-    public async put(doc: { _id: string } & any): Promise<RoCBasicResponse> {
+    public async put(
+        doc: { _id: string } & any,
+    ): Promise<RelaxOnCouch.BasicResponse> {
         return await this.request(`${this.url}/${doc._id}`, "PUT", doc);
     }
 
     public async remove(
         docId: string,
         docRev: string,
-    ): Promise<RoCBasicResponse> {
+    ): Promise<RelaxOnCouch.BasicResponse> {
         return await this.request(
             `${this.url}/${docId}?rev=${docRev}`,
             "DELETE",
         );
     }
 
-    public async allDocs<D>(
-        params: RoCAllDocsParams,
-    ): Promise<RoCViewResponse<D, string, { rev: string }>> {
+    public async allDocs<D = any>(
+        params: RelaxOnCouch.AllDocsParams,
+    ): Promise<RelaxOnCouch.ViewResponse<D, string, { rev: string }>> {
         return await this.request(`${this.url}/_all_docs`, "POST", params);
     }
 
-    public async query<D, K, V>(
+    public async query<D = any, K = any, V = any>(
         path: string,
-        params: RoCQueryParams,
-    ): Promise<RoCViewResponse<D, K, V>> {
+        params: RelaxOnCouch.QueryParams,
+    ): Promise<RelaxOnCouch.ViewResponse<D, K, V>> {
         const [designDocId, viewName] = path.split("/");
         return await this.request(
             `${this.url}/_design/${designDocId}/_view/${viewName}`,
@@ -125,8 +72,8 @@ class RelaxOnCouch {
 
     public async search<D>(
         path: string,
-        params: RoCSearchParams,
-    ): Promise<RoCSearchResponse<D>> {
+        params: RelaxOnCouch.SearchParams,
+    ): Promise<RelaxOnCouch.SearchResponse<D>> {
         const [designDocId, searchName] = path.split("/");
         return await this.request(
             `${this.url}/_design/${designDocId}/_search/${searchName}`,
