@@ -34,26 +34,30 @@ declare namespace RelaxOnCouch {
         bookmark?: string;
     }
 
-    interface ViewResponse<D, K = string, V = string> {
+    interface ViewResponse<D = any, K = any, V = any> {
         total_rows: number;
         offset: number;
-        rows: {
-            id: string;
-            key: K;
-            value: V;
-            doc?: D;
-        }[];
+        rows: ViewResponseRow<D, K, V>[];
     }
 
-    interface SearchResponse<D> {
+    interface ViewResponseRow<D = any, K = any, V = any> {
+        id: string;
+        key: K;
+        value: V;
+        doc?: D;
+    }
+
+    interface SearchResponse<D = any> {
         total_rows: number;
         bookmark: string;
-        rows: {
-            id: string;
-            order: any;
-            fields: any;
-            doc?: D;
-        }[];
+        rows: SearchResponseRow<D>[];
+    }
+
+    interface SearchResponseRow<D = any> {
+        id: string;
+        order: any;
+        fields: any;
+        doc?: D;
     }
 
     interface BasicResponse {
