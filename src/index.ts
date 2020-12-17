@@ -26,7 +26,10 @@ class RelaxOnCouch {
         const json = await res.json();
 
         if (json.error) {
-            throw new Error(json.reason || json.error);
+            const error = new Error(json.error);
+            (error as any).status = res.status;
+            (error as any).reason = json.reason;
+            throw error;
         }
 
         return json;
