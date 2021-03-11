@@ -60,6 +60,12 @@ declare namespace RelaxOnCouch {
         doc?: D;
     }
 
+    interface BasicErrorResponse {
+        id: string;
+        error: string;
+        reason: string;
+    }
+
     interface BasicResponse {
         id: string;
         rev: string;
