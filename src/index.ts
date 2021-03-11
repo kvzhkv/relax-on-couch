@@ -84,6 +84,14 @@ class RelaxOnCouch {
             params,
         );
     }
+
+    public async bulkDocs<D>(
+        docs: D[],
+    ): Promise<
+        (RelaxOnCouch.BasicResponse | RelaxOnCouch.BasicErrorResponse)[]
+    > {
+        return await this.request(`${this.url}/_bulk_docs`, "POST", { docs });
+    }
 }
 
 export default RelaxOnCouch;
