@@ -47,6 +47,10 @@ declare namespace RelaxOnCouch {
         doc?: D;
     }
 
+    interface MultipleViewResponse<D = any, K = any, V = any> {
+        results: ViewResponse<D, K, V>[];
+    }
+
     interface SearchResponse<D = any> {
         total_rows: number;
         bookmark: string;
