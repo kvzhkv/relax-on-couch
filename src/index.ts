@@ -63,7 +63,7 @@ class RelaxOnCouch {
 
     public async allDocsQueries<D = any>(
         queries: RelaxOnCouch.AllDocsParams[],
-    ): Promise<RelaxOnCouch.ViewResponse<D, string, { rev: string }>> {
+    ): Promise<RelaxOnCouch.MultipleViewResponse<D, string, { rev: string }>> {
         return await this.request(`${this.url}/_all_docs`, "POST", { queries });
     }
 
@@ -79,10 +79,10 @@ class RelaxOnCouch {
         );
     }
 
-    public async queries(
+    public async queries<D = any, K = any, V = any>(
         path: string,
         queries: RelaxOnCouch.QueryParams[],
-    ): Promise<any> {
+    ): Promise<RelaxOnCouch.MultipleViewResponse<D, K, V>> {
         const [designDocId, viewName] = path.split("/");
         return await this.request(
             `${this.url}/_design/${designDocId}/_view/${viewName}/queries`,
