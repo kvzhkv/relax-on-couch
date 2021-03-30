@@ -61,6 +61,12 @@ class RelaxOnCouch {
         return await this.request(`${this.url}/_all_docs`, "POST", params);
     }
 
+    public async allDocsQueries<D = any>(
+        queries: RelaxOnCouch.AllDocsParams[],
+    ): Promise<RelaxOnCouch.ViewResponse<D, string, { rev: string }>> {
+        return await this.request(`${this.url}/_all_docs`, "POST", { queries });
+    }
+
     public async query<D = any, K = any, V = any>(
         path: string,
         params: RelaxOnCouch.QueryParams,
@@ -70,6 +76,18 @@ class RelaxOnCouch {
             `${this.url}/_design/${designDocId}/_view/${viewName}`,
             "POST",
             params,
+        );
+    }
+
+    public async queries(
+        path: string,
+        queries: RelaxOnCouch.QueryParams[],
+    ): Promise<any> {
+        const [designDocId, viewName] = path.split("/");
+        return await this.request(
+            `${this.url}/_design/${designDocId}/_view/${viewName}/queries`,
+            "POST",
+            { queries },
         );
     }
 
