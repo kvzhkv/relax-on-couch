@@ -64,7 +64,9 @@ class RelaxOnCouch {
     public async allDocsQueries<D = any>(
         queries: RelaxOnCouch.AllDocsParams[],
     ): Promise<RelaxOnCouch.MultipleViewResponse<D, string, { rev: string }>> {
-        return await this.request(`${this.url}/_all_docs`, "POST", { queries });
+        return await this.request(`${this.url}/_all_docs/queries`, "POST", {
+            queries,
+        });
     }
 
     public async query<D = any, K = any, V = any>(
