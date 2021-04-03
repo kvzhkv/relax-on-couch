@@ -4,10 +4,12 @@ declare namespace RelaxOnCouch {
         _rev?: string;
     }
 
+    type QueryKey = string | number | object | (number | string | object)[];
+
     interface AllDocsParams {
-        keys?: string[];
-        startkey?: string;
-        endkey?: string;
+        keys?: QueryKey[];
+        startkey?: QueryKey;
+        endkey?: QueryKey;
         skip?: number;
         limit?: number;
         include_docs?: boolean;
@@ -15,12 +17,12 @@ declare namespace RelaxOnCouch {
     }
 
     interface QueryParams {
-        key?: string;
-        keys?: string[];
+        key?: QueryKey;
+        keys?: QueryKey[];
         skip?: number;
         limit?: number;
-        startkey?: string | number | object | (number | string | object)[];
-        endkey?: string | number | object | (number | string | object)[];
+        startkey?: QueryKey;
+        endkey?: QueryKey;
         include_docs?: boolean;
         descending?: boolean;
         reduce?: boolean;
