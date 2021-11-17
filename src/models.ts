@@ -31,6 +31,7 @@ declare namespace RelaxOnCouch {
 
     interface SearchParams {
         query: string;
+        sort?: string;
         limit?: number;
         include_docs?: boolean;
         bookmark?: string;
