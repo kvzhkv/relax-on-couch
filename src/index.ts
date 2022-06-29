@@ -13,6 +13,7 @@ class RelaxOnCouch {
         method: string,
         params?: object,
     ): Promise<any> {
+        try {
         const res = await fetch(url, {
             method,
             headers: {
@@ -20,8 +21,6 @@ class RelaxOnCouch {
             },
             body: params ? JSON.stringify(params) : undefined,
         });
-
-        // TODO: make error handling
 
         const json = await res.json();
 
@@ -33,6 +32,14 @@ class RelaxOnCouch {
         }
 
         return json;
+        } catch (e: any) {
+            if (!e.status) {
+                const message = "Something wrong with the db connection.";
+                console.error(message);
+                throw new Error(message);
+            }
+            throw e;
+        }
     }
 
     public async get<D>(docId: string): Promise<D> {
