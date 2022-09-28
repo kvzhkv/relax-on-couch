@@ -14,24 +14,24 @@ class RelaxOnCouch {
         params?: object,
     ): Promise<any> {
         try {
-        const res = await fetch(url, {
-            method,
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: params ? JSON.stringify(params) : undefined,
-        });
+            const res = await fetch(url, {
+                method,
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: params ? JSON.stringify(params) : undefined,
+            });
 
-        const json = await res.json();
+            const json = await res.json();
 
-        if (json.error) {
-            const error = new Error(json.error);
-            (error as any).status = res.status;
-            (error as any).reason = json.reason;
-            throw error;
-        }
+            if (json.error) {
+                const error = new Error(json.error);
+                (error as any).status = res.status;
+                (error as any).reason = json.reason;
+                throw error;
+            }
 
-        return json;
+            return json;
         } catch (e: any) {
             if (!e.status) {
                 const message = "Something wrong with the db connection.";
@@ -118,6 +118,16 @@ class RelaxOnCouch {
         (RelaxOnCouch.BasicResponse | RelaxOnCouch.BasicErrorResponse)[]
     > {
         return await this.request(`${this.url}/_bulk_docs`, "POST", { docs });
+    }
+
+    public async searchAnalyze(
+        text: string,
+        analyzer: RelaxOnCouch.LuceneAnalyzer,
+    ): Promise<RelaxOnCouch.SearchAnalyzeResponse> {
+        return await this.request(`${this.url}/_search_analyze`, "POST", {
+            text,
+            analyzer,
+        });
     }
 }
 
