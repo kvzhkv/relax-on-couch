@@ -79,6 +79,10 @@ declare namespace RelaxOnCouch {
         ok: boolean;
     }
 
+    interface SearchAnalyzeResponse {
+        tokens: string[];
+    }
+
     type LuceneAnalyzer =
         | "classic"
         | "email"
