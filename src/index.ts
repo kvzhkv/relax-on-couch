@@ -1,14 +1,17 @@
 /// <reference path="models.ts" />
 import fetch from "node-fetch";
 
-class RelaxOnCouch {
-    private url: string;
+class RelaxOnCouchBase {
+    protected baseUrl: string;
+    protected path: string;
+    protected dbName?: string;
 
-    constructor(url: string) {
-        this.url = url;
+    constructor(baseUrl: string, dbName?: string) {
+        this.baseUrl = baseUrl;
+        this.dbName = dbName;
+        this.path = `${baseUrl}/${dbName || ""}`;
     }
-
-    private async request(
+    protected async request(
         url: string,
         method: string,
         params?: object,
@@ -41,15 +44,21 @@ class RelaxOnCouch {
             throw e;
         }
     }
+}
+
+class RelaxOnCouch extends RelaxOnCouchBase {
+    constructor(baseUrl: string, dbName: string) {
+        super(baseUrl, dbName);
+    }
 
     public async get<D>(docId: string): Promise<D> {
-        return await this.request(`${this.url}/${docId}`, "GET");
+        return await this.request(`${this.path}/${docId}`, "GET");
     }
 
     public async put(
         doc: { _id: string } & any,
     ): Promise<RelaxOnCouch.BasicResponse> {
-        return await this.request(`${this.url}/${doc._id}`, "PUT", doc);
+        return await this.request(`${this.path}/${doc._id}`, "PUT", doc);
     }
 
     public async remove(
@@ -57,7 +66,7 @@ class RelaxOnCouch {
         docRev: string,
     ): Promise<RelaxOnCouch.BasicResponse> {
         return await this.request(
-            `${this.url}/${docId}?rev=${docRev}`,
+            `${this.path}/${docId}?rev=${docRev}`,
             "DELETE",
         );
     }
@@ -65,13 +74,13 @@ class RelaxOnCouch {
     public async allDocs<D = any>(
         params: RelaxOnCouch.AllDocsParams,
     ): Promise<RelaxOnCouch.ViewResponse<D, string, { rev: string }>> {
-        return await this.request(`${this.url}/_all_docs`, "POST", params);
+        return await this.request(`${this.path}/_all_docs`, "POST", params);
     }
 
     public async allDocsQueries<D = any>(
         queries: RelaxOnCouch.AllDocsParams[],
     ): Promise<RelaxOnCouch.MultipleViewResponse<D, string, { rev: string }>> {
-        return await this.request(`${this.url}/_all_docs/queries`, "POST", {
+        return await this.request(`${this.path}/_all_docs/queries`, "POST", {
             queries,
         });
     }
@@ -82,7 +91,7 @@ class RelaxOnCouch {
     ): Promise<RelaxOnCouch.ViewResponse<D, K, V>> {
         const [designDocId, viewName] = path.split("/");
         return await this.request(
-            `${this.url}/_design/${designDocId}/_view/${viewName}`,
+            `${this.path}/_design/${designDocId}/_view/${viewName}`,
             "POST",
             params,
         );
@@ -94,7 +103,7 @@ class RelaxOnCouch {
     ): Promise<RelaxOnCouch.MultipleViewResponse<D, K, V>> {
         const [designDocId, viewName] = path.split("/");
         return await this.request(
-            `${this.url}/_design/${designDocId}/_view/${viewName}/queries`,
+            `${this.path}/_design/${designDocId}/_view/${viewName}/queries`,
             "POST",
             { queries },
         );
@@ -106,7 +115,7 @@ class RelaxOnCouch {
     ): Promise<RelaxOnCouch.SearchResponse<D>> {
         const [designDocId, searchName] = path.split("/");
         return await this.request(
-            `${this.url}/_design/${designDocId}/_search/${searchName}`,
+            `${this.path}/_design/${designDocId}/_search/${searchName}`,
             "POST",
             params,
         );
@@ -117,18 +126,33 @@ class RelaxOnCouch {
     ): Promise<
         (RelaxOnCouch.BasicResponse | RelaxOnCouch.BasicErrorResponse)[]
     > {
-        return await this.request(`${this.url}/_bulk_docs`, "POST", { docs });
+        return await this.request(`${this.path}/_bulk_docs`, "POST", {
+            docs,
+        });
     }
+}
 
+class RelaxOnCouchUtil extends RelaxOnCouchBase {
     public async searchAnalyze(
         text: string,
         analyzer: RelaxOnCouch.LuceneAnalyzer,
     ): Promise<RelaxOnCouch.SearchAnalyzeResponse> {
-        return await this.request(`${this.url}/_search_analyze`, "POST", {
+        return await this.request(`${this.baseUrl}/_search_analyze`, "POST", {
             text,
             analyzer,
         });
     }
 }
 
-export default RelaxOnCouch;
+function initRelaxOnCouch(baseUrl: string): RelaxOnCouchUtil;
+function initRelaxOnCouch(
+    baseUrl: string,
+    dbName: string,
+): RelaxOnCouch;
+function initRelaxOnCouch(baseUrl: string, dbName?: string) {
+    return dbName
+        ? new RelaxOnCouch(baseUrl, dbName)
+        : new RelaxOnCouchUtil(baseUrl);
+}
+
+export default initRelaxOnCouch;
