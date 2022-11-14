@@ -1,4 +1,13 @@
 declare namespace RelaxOnCouch {
+    interface ServerConfig {
+        host: string;
+        secure?: boolean;
+        auth: {
+            username: string;
+            password: string;
+        };
+    }
+
     interface DocMeta {
         _id: string;
         _rev?: string;
