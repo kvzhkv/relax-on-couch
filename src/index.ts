@@ -1,4 +1,5 @@
 /// <reference path="models.ts" />
+import fetch from "node-fetch";
 
 abstract class RelaxOnCouchBase {
     constructor() {}
