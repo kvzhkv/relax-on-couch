@@ -1,6 +1,6 @@
 {
     "name": "relax-on-couch",
-    "version": "0.2.6",
+    "version": "0.2.7",
     "description": "CouchDB client for Node.js",
     "main": "./lib/index.js",
     "repository": "https://github.com/kvzhkv/relax-on-couch.git",
