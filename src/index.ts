@@ -38,7 +38,7 @@ abstract class RelaxOnCouchBase {
     }
 }
 
-class RelaxOnCouchDbScope extends RelaxOnCouchBase {
+export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
     private url: string;
     constructor(url: string) {
         super();
@@ -127,10 +127,8 @@ class RelaxOnCouchDbScope extends RelaxOnCouchBase {
     }
 }
 
-export class RelaxOnCouch extends RelaxOnCouchBase {
+class RelaxOnCouch extends RelaxOnCouchBase {
     private serverUrl: string;
-
-    static DB = RelaxOnCouchDbScope;
 
     constructor({
         host,
