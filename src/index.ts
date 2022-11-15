@@ -39,7 +39,7 @@ abstract class RelaxOnCouchBase {
 }
 
 export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
-    private url: string;
+    readonly url: string;
     constructor(url: string) {
         super();
         this.url = url;
@@ -128,7 +128,7 @@ export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
 }
 
 class RelaxOnCouch extends RelaxOnCouchBase {
-    private serverUrl: string;
+    readonly url: string;
 
     constructor({
         host,
@@ -136,24 +136,24 @@ class RelaxOnCouch extends RelaxOnCouchBase {
         auth: { username, password },
     }: RelaxOnCouch.ServerConfig) {
         super();
-        this.serverUrl = `http${
+        this.url = `http${
             secure ? "s" : ""
         }://${username}:${password}@${host}/`;
     }
 
     public async createDb(name: string) {
-        return await this.request(`${this.serverUrl}/${name}`, "PUT");
+        return await this.request(`${this.url}/${name}`, "PUT");
     }
 
     public useDb(name: string) {
-        return new RelaxOnCouchDbScope(this.serverUrl + name);
+        return new RelaxOnCouchDbScope(this.url + name);
     }
 
     public async searchAnalyze(
         text: string,
         analyzer: RelaxOnCouch.LuceneAnalyzer,
     ): Promise<RelaxOnCouch.SearchAnalyzeResponse> {
-        return await this.request(`${this.serverUrl}/_search_analyze`, "POST", {
+        return await this.request(`${this.url}/_search_analyze`, "POST", {
             text,
             analyzer,
         });
