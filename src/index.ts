@@ -2,15 +2,25 @@
 import fetch from "node-fetch";
 
 abstract class RelaxOnCouchBase {
-    constructor() {}
+    readonly baseUrl: string;
+
+    constructor({
+        host,
+        secure,
+        auth: { username, password },
+    }: RelaxOnCouch.ServerConfig) {
+        this.baseUrl = `http${
+            secure ? "s" : ""
+        }://${username}:${password}@${host}/`;
+    }
 
     protected async request<T>(
-        url: string,
+        path: string,
         method: string,
         params?: object,
     ): Promise<T> {
         try {
-            const res = await fetch(url, {
+            const res = await fetch(`${this.baseUrl}${path}`, {
                 method,
                 headers: {
                     "Content-Type": "application/json",
@@ -40,11 +50,17 @@ abstract class RelaxOnCouchBase {
 }
 
 export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
-    readonly url: string;
-    constructor(url: string) {
-        super();
-        this.url = url;
+    readonly dbName: string;
+    constructor(config: RelaxOnCouch.ServerConfigWithDb) {
+        super(config);
+        this.dbName = config.dbName;
     }
+
+    // TODO: remove this after changes following method implemented
+    public url(): string {
+        return this.baseUrl + this.dbName;
+    }
+
     private makeDDocPath(
         path: string,
         indexType: "view" | "search" = "view",
@@ -52,14 +68,15 @@ export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
         const [designDocId, indexName] = path.split("/");
         return `_design/${designDocId}/_${indexType}/${indexName}`;
     }
+
     public async get<D>(docId: string): Promise<D> {
-        return await this.request(`${this.url}/${docId}`, "GET");
+        return await this.request(`${this.dbName}/${docId}`, "GET");
     }
 
     public async put(
         doc: { _id: string } & any,
     ): Promise<RelaxOnCouch.BasicResponse> {
-        return await this.request(`${this.url}/${doc._id}`, "PUT", doc);
+        return await this.request(`${this.dbName}/${doc._id}`, "PUT", doc);
     }
 
     public async remove(
@@ -67,7 +84,7 @@ export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
         docRev: string,
     ): Promise<RelaxOnCouch.BasicResponse> {
         return await this.request(
-            `${this.url}/${docId}?rev=${docRev}`,
+            `${this.dbName}/${docId}?rev=${docRev}`,
             "DELETE",
         );
     }
@@ -75,13 +92,13 @@ export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
     public async allDocs<D = any>(
         params: RelaxOnCouch.AllDocsParams,
     ): Promise<RelaxOnCouch.ViewResponse<D, string, { rev: string }>> {
-        return await this.request(`${this.url}/_all_docs`, "POST", params);
+        return await this.request(`${this.dbName}/_all_docs`, "POST", params);
     }
 
     public async allDocsQueries<D = any>(
         queries: RelaxOnCouch.AllDocsParams[],
     ): Promise<RelaxOnCouch.MultipleViewResponse<D, string, { rev: string }>> {
-        return await this.request(`${this.url}/_all_docs/queries`, "POST", {
+        return await this.request(`${this.dbName}/_all_docs/queries`, "POST", {
             queries,
         });
     }
@@ -91,7 +108,7 @@ export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
         params: RelaxOnCouch.QueryParams,
     ): Promise<RelaxOnCouch.ViewResponse<D, K, V>> {
         return await this.request(
-            `${this.url}/${this.makeDDocPath(path)}`,
+            `${this.dbName}/${this.makeDDocPath(path)}`,
             "POST",
             params,
         );
@@ -102,7 +119,7 @@ export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
         queries: RelaxOnCouch.QueryParams[],
     ): Promise<RelaxOnCouch.MultipleViewResponse<D, K, V>> {
         return await this.request(
-            `${this.url}/${this.makeDDocPath(path)}/queries`,
+            `${this.dbName}/${this.makeDDocPath(path)}/queries`,
             "POST",
             { queries },
         );
@@ -113,7 +130,7 @@ export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
         params: RelaxOnCouch.SearchParams,
     ): Promise<RelaxOnCouch.SearchResponse<D>> {
         return await this.request(
-            `${this.url}/${this.makeDDocPath(path, "search")}`,
+            `${this.dbName}/${this.makeDDocPath(path, "search")}`,
             "POST",
             params,
         );
@@ -124,37 +141,33 @@ export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
     ): Promise<
         (RelaxOnCouch.BasicResponse | RelaxOnCouch.BasicErrorResponse)[]
     > {
-        return await this.request(`${this.url}/_bulk_docs`, "POST", { docs });
+        return await this.request(`${this.dbName}/_bulk_docs`, "POST", {
+            docs,
+        });
     }
 }
 
 class RelaxOnCouch extends RelaxOnCouchBase {
-    readonly url: string;
+    private serverConfig: RelaxOnCouch.ServerConfig;
 
-    constructor({
-        host,
-        secure,
-        auth: { username, password },
-    }: RelaxOnCouch.ServerConfig) {
-        super();
-        this.url = `http${
-            secure ? "s" : ""
-        }://${username}:${password}@${host}/`;
+    constructor(config: RelaxOnCouch.ServerConfig) {
+        super(config);
+        this.serverConfig = config;
     }
 
-    public async createDb(name: string) {
-        return await this.request(`${this.url}/${name}`, "PUT");
+    public async createDb(dbName: string) {
+        return await this.request(dbName, "PUT");
     }
 
-    public useDb(name: string) {
-        return new RelaxOnCouchDbScope(this.url + name);
+    public useDb(dbName: string) {
+        return new RelaxOnCouchDbScope({ ...this.serverConfig, dbName });
     }
 
     public async searchAnalyze(
         text: string,
         analyzer: RelaxOnCouch.LuceneAnalyzer,
     ): Promise<RelaxOnCouch.SearchAnalyzeResponse> {
-        return await this.request(`${this.url}/_search_analyze`, "POST", {
+        return await this.request(`_search_analyze`, "POST", {
             text,
             analyzer,
         });
