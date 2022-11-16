@@ -8,6 +8,10 @@ declare namespace RelaxOnCouch {
         };
     }
 
+    interface ServerConfigWithDb extends ServerConfig {
+        dbName: string;
+    }
+
     interface DocMeta {
         _id: string;
         _rev?: string;
