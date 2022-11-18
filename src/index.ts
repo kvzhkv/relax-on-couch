@@ -1,24 +1,6 @@
 /// <reference path="models.ts" />
 import fetch from "node-fetch";
 
-export interface ChangesFeed {
-    last_seq: string;
-    pending: number;
-    results: DocChangesInfo[];
-}
-
-export interface DocChangesInfo {
-    id: string;
-    seq: string;
-    deleted?: true;
-    changes: { rev: string }[];
-}
-
-export interface PurgeFeed {
-    purge_seq: string | null;
-    purged: { [x: string]: string[] };
-}
-
 abstract class RelaxOnCouchBase {
     readonly baseUrl: string;
 
@@ -164,25 +146,9 @@ export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
         });
     }
 
-    public async changes(
-        since: 0 | "now" | string,
-        limit: number,
-        filter?: "_view" | string,
-        view?: string,
-    ): Promise<ChangesFeed> {
-        return await this.request(
-            `${
-                this.dbName
-            }/_changes?style=all_docs&since=${since}&limit=${limit}${
-                (filter && `&filter=${filter}`) || ""
-            }${(view && `&view=${view}`) || ""}`,
-            "GET",
-        );
-    }
-
     public async purgeDocs(idRevsMap: {
         [x: string]: string[];
-    }): Promise<PurgeFeed> {
+    }): Promise<RelaxOnCouch.PurgeFeed> {
         return await this.request(`${this.dbName}/_purge`, "POST", idRevsMap);
     }
 }

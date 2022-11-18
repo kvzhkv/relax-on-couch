@@ -140,4 +140,9 @@ declare namespace RelaxOnCouch {
         | "swedish" // org.apache.lucene.analysis.sv.SwedishAnalyzer
         | "thai" // org.apache.lucene.analysis.th.ThaiAnalyzer
         | "turkish"; // org.apache.lucene.analysis.tr.TurkishAnalyzer
+
+    interface PurgeFeed {
+        purge_seq: string | null;
+        purged: { [x: string]: string[] };
+    }
 }
