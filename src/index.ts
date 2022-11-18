@@ -145,6 +145,12 @@ export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
             docs,
         });
     }
+
+    public async purgeDocs(idRevsMap: {
+        [x: string]: string[];
+    }): Promise<RelaxOnCouch.PurgeFeed> {
+        return await this.request(`${this.dbName}/_purge`, "POST", idRevsMap);
+    }
 }
 
 class RelaxOnCouch extends RelaxOnCouchBase {
