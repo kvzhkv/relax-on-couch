@@ -1,6 +1,5 @@
 export interface ServerConfig {
-    host: string;
-    secure?: boolean;
+    url: string;
     auth: {
         username: string;
         password: string;
