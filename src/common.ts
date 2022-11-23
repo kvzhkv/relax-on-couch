@@ -48,12 +48,12 @@ export abstract class RelaxOnCouchBase {
 
             return json;
         } catch (e: any) {
+            console.error(e);
             if (e.name === "AbortError") {
                 throw new Error(
                     "No reponse from the db, request was aborted due timeout.",
                 );
             }
-            console.error(e);
             if (!e.status) {
                 throw new Error("Something wrong with the db connection.");
             }
