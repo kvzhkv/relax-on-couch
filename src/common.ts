@@ -3,17 +3,18 @@ import { ServerConfig } from "./models.js";
 export abstract class RelaxOnCouchBase {
     readonly baseUrl: string;
     private timeout: number;
+    private auth: string;
 
     constructor({
-        host,
-        secure,
+        url,
         auth: { username, password },
         timeout = 20000,
     }: ServerConfig) {
-        this.baseUrl = `http${
-            secure ? "s" : ""
-        }://${username}:${password}@${host}/`;
+        this.baseUrl = url;
         this.timeout = timeout;
+        this.auth = `Basic ${Buffer.from(`${username}:${password}`).toString(
+            "base64",
+        )}`;
     }
 
     protected async request<T>(
@@ -30,12 +31,13 @@ export abstract class RelaxOnCouchBase {
                 method,
                 headers: {
                     "Content-Type": "application/json",
+                    Authorization: this.auth,
                 },
                 body: params ? JSON.stringify(params) : undefined,
                 signal: controller.signal,
             });
 
-            const json = await res.json();
+            const json: any = await res.json();
 
             if (json.error) {
                 const error = new Error(json.error);
@@ -51,6 +53,7 @@ export abstract class RelaxOnCouchBase {
                     "No reponse from the db, request was aborted due timeout.",
                 );
             }
+            console.error(e);
             if (!e.status) {
                 throw new Error("Something wrong with the db connection.");
             }
