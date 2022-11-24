@@ -27,7 +27,7 @@ export abstract class RelaxOnCouchBase {
             controller.abort();
         }, this.timeout);
         try {
-            const res = await fetch(`${this.baseUrl}${path}`, {
+            const res = await fetch(`http://${this.baseUrl}/${path}`, {
                 method,
                 headers: {
                     "Content-Type": "application/json",
