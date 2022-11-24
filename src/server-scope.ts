@@ -4,6 +4,7 @@ import {
     ServerConfig,
     LuceneAnalyzer,
     SearchAnalyzeResponse,
+    ProxyAuthParams,
 } from "./models.js";
 
 export class RelaxOnCouch extends RelaxOnCouchBase {
@@ -12,6 +13,10 @@ export class RelaxOnCouch extends RelaxOnCouchBase {
     constructor(config: ServerConfig) {
         super(config);
         this.serverConfig = config;
+    }
+
+    protected override get authentication(): ProxyAuthParams | null {
+        return this.proxyAuth || null;
     }
 
     public async createDb(dbName: string) {

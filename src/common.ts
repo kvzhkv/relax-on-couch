@@ -1,21 +1,41 @@
-import { ServerConfig } from "./models.js";
+import {
+    BasicAuthInit,
+    BasicAuthParams,
+    ProxyAuthInit,
+    ProxyAuthParams,
+    ServerConfig,
+} from "./models.js";
 
 export abstract class RelaxOnCouchBase {
     readonly baseUrl: string;
     private timeout: number;
-    private auth: string;
+    protected basicAuth?: BasicAuthParams;
+    protected proxyAuth?: ProxyAuthParams;
 
-    constructor({
-        url,
-        auth: { username, password },
-        timeout = 20000,
-    }: ServerConfig) {
+    constructor({ url, auth, timeout = 20000 }: ServerConfig) {
+        const { username, password } = auth as BasicAuthInit;
+        const { proxyUsername, proxyToken } = auth as ProxyAuthInit;
         this.baseUrl = url;
         this.timeout = timeout;
-        this.auth = `Basic ${Buffer.from(`${username}:${password}`).toString(
-            "base64",
-        )}`;
+        this.basicAuth =
+            username && password
+                ? {
+                      Authorization: `Basic ${Buffer.from(
+                          `${username}:${password}`,
+                      ).toString("base64")}`,
+                  }
+                : undefined;
+        this.proxyAuth = {
+            "X-Auth-CouchDB-Roles": "_admin",
+            "X-Auth-CouchDB-Token": proxyToken,
+            "X-Auth-CouchDB-UserName": proxyUsername,
+        };
     }
+
+    protected abstract get authentication():
+        | BasicAuthParams
+        | ProxyAuthParams
+        | null;
 
     protected async request<T>(
         path: string,
@@ -31,7 +51,7 @@ export abstract class RelaxOnCouchBase {
                 method,
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: this.auth,
+                    ...this.authentication,
                 },
                 body: params ? JSON.stringify(params) : undefined,
                 signal: controller.signal,
