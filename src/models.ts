@@ -1,9 +1,28 @@
+export type AuthParams = BasicAuthInit | ProxyAuthInit;
+
+export interface BasicAuthInit {
+    username: string;
+    password: string;
+}
+
+export interface ProxyAuthInit {
+    proxyUsername: string;
+    proxyToken: string;
+}
+
+export interface BasicAuthParams {
+    Authorization: string;
+}
+
+export interface ProxyAuthParams {
+    "X-Auth-CouchDB-Roles": string;
+    "X-Auth-CouchDB-UserName": string;
+    "X-Auth-CouchDB-Token": string;
+}
+
 export interface ServerConfig {
     url: string;
-    auth: {
-        username: string;
-        password: string;
-    };
+    auth: AuthParams;
     timeout?: number;
 }
 
