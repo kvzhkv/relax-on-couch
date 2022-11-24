@@ -1,4 +1,7 @@
-export type AuthParams = BasicAuthInit | ProxyAuthInit;
+export interface AuthParams {
+    basic?: BasicAuthInit;
+    proxy?: ProxyAuthInit;
+}
 
 export interface BasicAuthInit {
     username: string;

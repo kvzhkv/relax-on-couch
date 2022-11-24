@@ -1,10 +1,4 @@
-import {
-    BasicAuthInit,
-    BasicAuthParams,
-    ProxyAuthInit,
-    ProxyAuthParams,
-    ServerConfig,
-} from "./models.js";
+import { BasicAuthParams, ProxyAuthParams, ServerConfig } from "./models.js";
 
 export abstract class RelaxOnCouchBase {
     readonly baseUrl: string;
@@ -12,9 +6,13 @@ export abstract class RelaxOnCouchBase {
     protected basicAuth?: BasicAuthParams;
     protected proxyAuth?: ProxyAuthParams;
 
-    constructor({ url, auth, timeout = 20000 }: ServerConfig) {
-        const { username, password } = auth as BasicAuthInit;
-        const { proxyUsername, proxyToken } = auth as ProxyAuthInit;
+    constructor({
+        url,
+        auth: { basic, proxy },
+        timeout = 20000,
+    }: ServerConfig) {
+        const { username, password } = basic || {};
+        const { proxyUsername, proxyToken } = proxy || {};
         this.baseUrl = url;
         this.timeout = timeout;
         this.basicAuth =
@@ -25,11 +23,14 @@ export abstract class RelaxOnCouchBase {
                       ).toString("base64")}`,
                   }
                 : undefined;
-        this.proxyAuth = {
-            "X-Auth-CouchDB-Roles": "_admin",
-            "X-Auth-CouchDB-Token": proxyToken,
-            "X-Auth-CouchDB-UserName": proxyUsername,
-        };
+        this.proxyAuth =
+            proxyUsername && proxyToken
+                ? {
+                      "X-Auth-CouchDB-Roles": "_admin",
+                      "X-Auth-CouchDB-Token": proxyToken,
+                      "X-Auth-CouchDB-UserName": proxyUsername,
+                  }
+                : undefined;
     }
 
     protected abstract get authentication():
