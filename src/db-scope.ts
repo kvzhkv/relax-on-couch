@@ -10,6 +10,8 @@ import {
     SearchResponse,
     BasicErrorResponse,
     PurgeFeed,
+    BasicAuthParams,
+    ProxyAuthParams,
 } from "./models.js";
 
 export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
@@ -22,6 +24,13 @@ export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
     // TODO: remove this after changes following method implemented
     public url(): string {
         return this.baseUrl + this.dbName;
+    }
+
+    protected override get authentication():
+        | ProxyAuthParams
+        | BasicAuthParams
+        | null {
+        return this.basicAuth || this.proxyAuth || null;
     }
 
     private makeDDocPath(
