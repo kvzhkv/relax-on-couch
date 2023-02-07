@@ -1,10 +1,13 @@
 import { ServerConfig } from "./models.js";
 import fetch from "node-fetch";
+import http from "http";
+import https from "https";
 
 export abstract class RelaxOnCouchBase {
     readonly baseUrl: string;
     private timeout: number;
     private auth: string;
+    private agent: http.Agent | https.Agent;
 
     constructor({
         url,
@@ -16,6 +19,11 @@ export abstract class RelaxOnCouchBase {
         this.auth = `Basic ${Buffer.from(`${username}:${password}`).toString(
             "base64",
         )}`;
+        this.agent = new (url.startsWith("https:") ? https : http).Agent({
+            keepAlive: true,
+            maxSockets: 50,
+            keepAliveMsecs: 30000,
+        });
     }
 
     protected async request<T>(
@@ -36,6 +44,7 @@ export abstract class RelaxOnCouchBase {
                 },
                 body: params ? JSON.stringify(params) : undefined,
                 signal: controller.signal,
+                agent: this.agent,
             });
 
             const contentType = res.headers.get("Content-Type");
