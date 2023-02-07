@@ -38,6 +38,18 @@ export abstract class RelaxOnCouchBase {
                 signal: controller.signal,
             });
 
+            const contentType = res.headers.get("Content-Type");
+
+            if (!contentType || !contentType.includes("application/json")) {
+                const text = await res.text();
+                console.error(text);
+                throw new Error(
+                    `RelaxOnCouch: upsupported Content-Type, expected application/json, recieved ${
+                        contentType || "null"
+                    }`,
+                );
+            }
+
             const json: any = await res.json();
 
             if (json.error) {
