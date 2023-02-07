@@ -1,4 +1,5 @@
 import { ServerConfig } from "./models.js";
+import fetch from "node-fetch";
 
 export abstract class RelaxOnCouchBase {
     readonly baseUrl: string;
