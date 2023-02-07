@@ -41,7 +41,7 @@ export abstract class RelaxOnCouchBase {
             const json: any = await res.json();
 
             if (json.error) {
-                const error = new Error(json.error);
+                const error = new Error(`RelaxOnCouch: ${json.error}`);
                 (error as any).status = res.status;
                 (error as any).reason = json.reason;
                 throw error;
@@ -49,15 +49,13 @@ export abstract class RelaxOnCouchBase {
 
             return json;
         } catch (e: any) {
+            if (!e.message) {
+                e.message = "RelaxOnCouch: Unknown error";
+            }
+            if (e.message.indexOf("RelaxOnCouch") === -1) {
+                e.message = `RelaxOnCouch: ${e.message}`;
+            }
             console.error(e);
-            if (e.name === "AbortError") {
-                throw new Error(
-                    "No reponse from the db, request was aborted due timeout.",
-                );
-            }
-            if (!e.status) {
-                throw new Error("Something wrong with the db connection.");
-            }
             throw e;
         } finally {
             clearTimeout(timeout);
