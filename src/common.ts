@@ -1,13 +1,18 @@
 import { AbortControlObject, ServerConfig } from "./models.js";
 import fetch from "node-fetch";
 import http from "http";
-import https from "https";
+import https, { RequestOptions } from "https";
 
 export abstract class RelaxOnCouchBase {
     readonly baseUrl: string;
     private timeout: number;
     private auth: string;
     private agent: http.Agent | https.Agent;
+    private send: (
+        url: string | URL,
+        options: RequestOptions,
+        callback?: (res: http.IncomingMessage) => void,
+    ) => http.ClientRequest;
 
     constructor({
         url,
@@ -24,6 +29,7 @@ export abstract class RelaxOnCouchBase {
             maxSockets: 50,
             keepAliveMsecs: 30000,
         });
+        this.send = (url.startsWith("https") ? https : http).request;
     }
 
     protected request<T>(
@@ -112,5 +118,53 @@ export abstract class RelaxOnCouchBase {
                   },
               ]
             : promise;
+    }
+
+    protected subscribe(
+        path: string,
+        cb: (message: any) => void,
+    ): AbortControlObject {
+        const request = this.send(`${this.baseUrl}${path}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: this.auth,
+            },
+            agent: this.agent,
+        });
+
+        request.once("response", response => {
+            response.on("data", (data: Buffer) => {
+                if (data.length > 1 || data[0] !== 10) {
+                    handleMessage(data);
+                }
+            });
+        });
+
+        request.end();
+
+        let pull: string[] = [];
+        const handleMessage = (data: Buffer) => {
+            let changeStr;
+            if (data[data.length - 1] === 10) {
+                if (pull.length) {
+                    pull.push(data.toString("utf8"));
+                    changeStr = pull.join("");
+                    pull = [];
+                } else {
+                    changeStr = data.toString("utf8");
+                }
+                setTimeout(cb, 0, JSON.parse(changeStr));
+            } else {
+                pull.push(data.toString("utf8"));
+            }
+        };
+
+        return {
+            abort: () => request.destroy(),
+            onAbort: new Promise(resolve =>
+                request.once("close", () => resolve()),
+            ),
+        };
     }
 }
