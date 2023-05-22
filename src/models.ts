@@ -1,3 +1,8 @@
+export interface AbortControlObject {
+    abort: () => void;
+    onAbort: Promise<void>;
+}
+
 export interface ServerConfig {
     url: string;
     auth: {
