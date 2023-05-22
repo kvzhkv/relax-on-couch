@@ -1,3 +1,4 @@
+import EventEmitter from "events";
 import { RelaxOnCouchBase } from "./common.js";
 import {
     ServerConfigWithDb,
@@ -10,6 +11,13 @@ import {
     SearchResponse,
     BasicErrorResponse,
     PurgeFeed,
+    DocMeta,
+    ChangesFeed,
+    ChangesOptions,
+    ChangesCallback,
+    AbortControlObject,
+    ChangesFeedHeading,
+    ChangesFeedResult,
 } from "./models.js";
 
 export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
@@ -106,5 +114,88 @@ export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
         [x: string]: string[];
     }): Promise<PurgeFeed> {
         return await this.request(`${this.dbName}/_purge`, "POST", idRevsMap);
+    }
+
+    public changes<T extends DocMeta | undefined = undefined>(
+        polling?: "normal",
+        options?: ChangesOptions,
+    ): Promise<ChangesFeed<T>>;
+    public changes<T extends DocMeta | undefined = undefined>(
+        polling: "longpoll",
+        options?: ChangesOptions,
+    ): [Promise<ChangesFeed<T> | ChangesFeedHeading>, AbortControlObject];
+    public changes<T extends DocMeta | undefined = undefined>(
+        polling: "continuous",
+        options: ChangesOptions,
+        cb: ChangesCallback<T>,
+    ): [Promise<ChangesFeedHeading | never>, AbortControlObject];
+    public changes<T extends DocMeta | undefined = undefined>(
+        polling_?: "normal" | "longpoll" | "continuous",
+        options?: ChangesOptions,
+        cb?: ChangesCallback<T>,
+    ):
+        | Promise<ChangesFeed<T>>
+        | [Promise<ChangesFeed<T> | ChangesFeedHeading>, AbortControlObject]
+        | [Promise<ChangesFeedHeading | never>, AbortControlObject] {
+        const polling = !polling_ ? "normal" : polling_;
+        const defaults = {
+            feed: polling,
+            since: polling === "normal" ? 0 : "now",
+            heartbeat:
+                options?.timeout || polling === "normal" ? undefined : 10000,
+        };
+
+        const processedOptions = Object.assign({}, defaults, options, {
+            doc_ids: undefined,
+            selector: undefined,
+        });
+
+        const query = Object.entries(processedOptions)
+            .filter(([_, value]) => value !== undefined && value !== null)
+            .map(([key, value]) => `${key}=${value}`)
+            .join("&");
+
+        const body = (options?.doc_ids || options?.selector) && {
+            doc_ids: options.doc_ids || undefined,
+            selector: options.selector || undefined,
+        };
+
+        if (polling === "normal") {
+            return this.request(
+                `${this.dbName}/_changes?${query}`,
+                "POST",
+                body,
+            );
+        }
+
+        if (polling === "longpoll") {
+            return this.request(
+                `${this.dbName}/_changes?${query}`,
+                "POST",
+                body,
+                true,
+            );
+        }
+
+        const e = new EventEmitter();
+        const promise = new Promise<ChangesFeedHeading>((resolve, reject) => {
+            e.once("ChangesFeedHeadingRecieved", heading => resolve(heading));
+            abort.onAbort.then(reject);
+        });
+
+        const abort = this.subscribe(
+            `${this.dbName}/_changes?${query}`,
+            (change: any) => {
+                if (change.seq) {
+                    cb!(change as ChangesFeedResult<T>);
+                } else {
+                    e.emit(
+                        "ChangesFeedHeadingRecieved",
+                        change as ChangesFeedHeading,
+                    );
+                }
+            },
+        );
+        return [promise, abort];
     }
 }
