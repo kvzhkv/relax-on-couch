@@ -1,4 +1,4 @@
-import { AbortControlObject, ServerConfig } from "./models.js";
+import { AbortControll, ServerConfig } from "./models.js";
 import fetch from "node-fetch";
 import http from "http";
 import https, { RequestOptions } from "https";
@@ -93,7 +93,7 @@ export abstract class RelaxOnCouchBase {
         path: string,
         method: string,
         params?: object,
-    ): [Promise<T>, AbortControlObject] {
+    ): [Promise<T>, AbortControll] {
         const controller = new AbortController();
         const promise: Promise<T> = fetch(`${this.baseUrl}${path}`, {
             method,
@@ -158,7 +158,7 @@ export abstract class RelaxOnCouchBase {
     protected subscribe(
         path: string,
         cb: (message: any) => void,
-    ): AbortControlObject {
+    ): AbortControll {
         const request = this.send(`${this.baseUrl}${path}`, {
             method: "GET",
             headers: {

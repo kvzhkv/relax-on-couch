@@ -1,4 +1,4 @@
-export interface AbortControlObject {
+export interface AbortControll {
     abort: () => void;
     onAbort: Promise<void>;
 }

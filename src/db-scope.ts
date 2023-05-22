@@ -15,7 +15,7 @@ import {
     ChangesFeed,
     ChangesOptions,
     ChangesCallback,
-    AbortControlObject,
+    AbortControll,
     ChangesFeedHeading,
     ChangesFeedResult,
 } from "./models.js";
@@ -123,20 +123,20 @@ export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
     public changes<T extends DocMeta | undefined = undefined>(
         polling: "longpoll",
         options?: ChangesOptions,
-    ): [Promise<ChangesFeed<T> | ChangesFeedHeading>, AbortControlObject];
+    ): [Promise<ChangesFeed<T> | ChangesFeedHeading>, AbortControll];
     public changes<T extends DocMeta | undefined = undefined>(
         polling: "continuous",
         options: ChangesOptions,
         cb: ChangesCallback<T>,
-    ): [Promise<ChangesFeedHeading | never>, AbortControlObject];
+    ): [Promise<ChangesFeedHeading | never>, AbortControll];
     public changes<T extends DocMeta | undefined = undefined>(
         polling_?: "normal" | "longpoll" | "continuous",
         options?: ChangesOptions,
         cb?: ChangesCallback<T>,
     ):
         | Promise<ChangesFeed<T>>
-        | [Promise<ChangesFeed<T> | ChangesFeedHeading>, AbortControlObject]
-        | [Promise<ChangesFeedHeading | never>, AbortControlObject] {
+        | [Promise<ChangesFeed<T> | ChangesFeedHeading>, AbortControll]
+        | [Promise<ChangesFeedHeading | never>, AbortControll] {
         const polling = !polling_ ? "normal" : polling_;
         const defaults = {
             feed: polling,
