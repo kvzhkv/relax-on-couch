@@ -177,10 +177,6 @@ export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
         }
 
         const e = new EventEmitter();
-        const promise = new Promise<ChangesFeedHeading>((resolve, reject) => {
-            e.once("ChangesFeedHeadingRecieved", heading => resolve(heading));
-            abort.onAbort.then(reject);
-        });
 
         const abort = this.subscribe(
             `${this.dbName}/_changes?${query}`,
@@ -195,6 +191,11 @@ export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
                 }
             },
         );
+
+        const promise = new Promise<ChangesFeedHeading>((resolve, _reject) => {
+            e.once("ChangesFeedHeadingRecieved", heading => resolve(heading));
+        });
+
         return [promise, abort];
     }
 }

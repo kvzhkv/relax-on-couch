@@ -160,7 +160,7 @@ export abstract class RelaxOnCouchBase {
         cb: (message: any) => void,
     ): AbortControll {
         const request = this.send(`${this.baseUrl}${path}`, {
-            method: "GET",
+            method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: this.auth,
