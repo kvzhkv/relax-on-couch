@@ -169,11 +169,10 @@ export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
         }
 
         if (polling === "longpoll") {
-            return this.request(
+            return this.requestWithControl(
                 `${this.dbName}/_changes?${query}`,
                 "POST",
                 body,
-                true,
             );
         }
 
