@@ -8,7 +8,8 @@
     "license": "MIT",
     "type": "module",
     "scripts": {
-        "prepublishOnly": "tsc"
+        "prepublishOnly": "tsc",
+        "build:with-sourcemaps": "tsc --sourceMap"
     },
     "devDependencies": {
         "@types/node": "^18.11.9",
