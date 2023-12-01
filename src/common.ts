@@ -189,7 +189,10 @@ export abstract class RelaxOnCouchBase {
                 } else {
                     changeStr = data.toString("utf8");
                 }
-                setTimeout(cb, 0, JSON.parse(changeStr));
+                changeStr
+                    .split("\n")
+                    .filter(s => !!s)
+                    .map(s => setTimeout(cb, 0, JSON.parse(s)));
             } else {
                 pull.push(data.toString("utf8"));
             }
