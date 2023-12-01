@@ -172,6 +172,8 @@ export interface Change {
     rev: string;
 }
 
+type FilterFunctionName = `${string}/${string}`;
+
 export type ChangesOptions = Partial<{
     since: "now" | number;
     heartbeat: number;
@@ -179,7 +181,7 @@ export type ChangesOptions = Partial<{
     include_docs: boolean;
     style: "main_only" | "all_docs";
     limit: number;
-    filter: "_doc_ids" | "_selector" | "_view";
+    filter: "_doc_ids" | "_selector" | "_view" | "_design" | FilterFunctionName;
     doc_ids: string[];
     selector: object;
     view: string;
