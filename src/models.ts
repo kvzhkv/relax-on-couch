@@ -1,3 +1,8 @@
+export interface AbortControll {
+    abort: () => void;
+    onAbort: Promise<void>;
+}
+
 export interface ServerConfig {
     url: string;
     auth: {
@@ -144,3 +149,44 @@ export interface PurgeFeed {
     purge_seq: string | null;
     purged: { [x: string]: string[] };
 }
+
+export interface ChangesFeedHeading {
+    last_seq: string;
+    pending: number;
+}
+
+export interface ChangesFeed<T extends DocMeta | undefined = undefined>
+    extends ChangesFeedHeading {
+    results: ChangesFeedResult<T>[];
+}
+
+export interface ChangesFeedResult<T extends DocMeta | undefined = undefined> {
+    seq: string;
+    id: string;
+    changes: Change[];
+    deleted?: boolean;
+    doc: T;
+}
+
+export interface Change {
+    rev: string;
+}
+
+type FilterFunctionName = `${string}/${string}`;
+
+export type ChangesOptions = Partial<{
+    since: "now" | number;
+    heartbeat: number;
+    timeout: number;
+    include_docs: boolean;
+    style: "main_only" | "all_docs";
+    limit: number;
+    filter: "_doc_ids" | "_selector" | "_view" | "_design" | FilterFunctionName;
+    doc_ids: string[];
+    selector: object;
+    view: string;
+}>;
+
+export type ChangesCallback<T extends DocMeta | undefined> = (
+    change: ChangesFeedResult<T>,
+) => void;
