@@ -35,10 +35,12 @@ export interface QueryParams {
     limit?: number;
     startkey?: QueryKey;
     endkey?: QueryKey;
+    inclusive_end?: boolean;
     include_docs?: boolean;
     descending?: boolean;
     reduce?: boolean;
     group?: boolean;
+    group_level?: number;
 }
 
 export interface SearchParams {
