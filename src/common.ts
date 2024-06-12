@@ -1,13 +1,18 @@
-import { ServerConfig } from "./models.js";
+import { AbortControll, ServerConfig } from "./models.js";
 import fetch from "node-fetch";
 import http from "http";
-import https from "https";
+import https, { RequestOptions } from "https";
 
 export abstract class RelaxOnCouchBase {
     readonly baseUrl: string;
     private timeout: number;
     private auth: string;
     private agent: http.Agent | https.Agent;
+    private send: (
+        url: string | URL,
+        options: RequestOptions,
+        callback?: (res: http.IncomingMessage) => void,
+    ) => http.ClientRequest;
 
     constructor({
         url,
@@ -24,6 +29,7 @@ export abstract class RelaxOnCouchBase {
             maxSockets: 50,
             keepAliveMsecs: 30000,
         });
+        this.send = (url.startsWith("https") ? https : http).request;
     }
 
     protected async request<T>(
@@ -81,5 +87,122 @@ export abstract class RelaxOnCouchBase {
         } finally {
             clearTimeout(timeout);
         }
+    }
+
+    protected requestWithControl<T>(
+        path: string,
+        method: string,
+        params?: object,
+    ): [Promise<T>, AbortControll] {
+        const controller = new AbortController();
+        const promise: Promise<T> = fetch(`${this.baseUrl}${path}`, {
+            method,
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: this.auth,
+            },
+            body: params ? JSON.stringify(params) : undefined,
+            signal: controller.signal,
+            agent: this.agent,
+        })
+            .then(res => {
+                const contentType = res.headers.get("Content-Type");
+
+                if (!contentType || !contentType.includes("application/json")) {
+                    res.text().then(text => {
+                        console.error(text);
+                        throw new Error(
+                            `RelaxOnCouch: upsupported Content-Type, expected application/json, recieved ${
+                                contentType || "null"
+                            }`,
+                        );
+                    });
+                }
+
+                return res.json().then((json: any) => {
+                    if (json.error) {
+                        const error = new Error(`RelaxOnCouch: ${json.error}`);
+                        (error as any).status = res.status;
+                        (error as any).reason = json.reason;
+                        throw error;
+                    }
+
+                    return json;
+                });
+            })
+            .catch(e => {
+                if (!e.message) {
+                    e.message = "RelaxOnCouch: Unknown error";
+                }
+                if (e.message.indexOf("RelaxOnCouch") === -1) {
+                    e.message = `RelaxOnCouch: ${e.message}`;
+                }
+                console.error(e);
+                throw e;
+            });
+        return [
+            promise,
+            {
+                abort: () => controller.abort(),
+                onAbort: new Promise(resolve => {
+                    promise.catch(e => {
+                        if (e.name === "AbortError") {
+                            resolve();
+                        }
+                    });
+                }),
+            },
+        ];
+    }
+
+    protected subscribe(
+        path: string,
+        cb: (message: any) => void,
+    ): AbortControll {
+        const request = this.send(`${this.baseUrl}${path}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: this.auth,
+            },
+            agent: this.agent,
+        });
+
+        request.once("response", response => {
+            response.on("data", (data: Buffer) => {
+                if (data.length > 1 || data[0] !== 10) {
+                    handleMessage(data);
+                }
+            });
+        });
+
+        request.end();
+
+        let pull: string[] = [];
+        const handleMessage = (data: Buffer) => {
+            let changeStr;
+            if (data[data.length - 1] === 10) {
+                if (pull.length) {
+                    pull.push(data.toString("utf8"));
+                    changeStr = pull.join("");
+                    pull = [];
+                } else {
+                    changeStr = data.toString("utf8");
+                }
+                changeStr
+                    .split("\n")
+                    .filter(s => !!s)
+                    .map(s => setTimeout(cb, 0, JSON.parse(s)));
+            } else {
+                pull.push(data.toString("utf8"));
+            }
+        };
+
+        return {
+            abort: () => request.destroy(),
+            onAbort: new Promise(resolve =>
+                request.once("close", () => resolve()),
+            ),
+        };
     }
 }
