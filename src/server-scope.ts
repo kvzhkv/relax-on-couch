@@ -18,6 +18,10 @@ export class RelaxOnCouch extends RelaxOnCouchBase {
         return await this.request(dbName, "PUT");
     }
 
+    public async deleteDb(dbName: string) {
+        return await this.request(dbName, "DELETE");
+    }
+
     public useDb(dbName: string) {
         return new RelaxOnCouchDbScope({ ...this.serverConfig, dbName });
     }
