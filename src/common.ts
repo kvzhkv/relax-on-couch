@@ -35,6 +35,7 @@ export abstract class RelaxOnCouchBase {
         const timeout = setTimeout(() => {
             controller.abort();
         }, this.timeout);
+        const t0 = Date.now();
         try {
             const res = await fetch(`${this.baseUrl}${path}`, {
                 method,
@@ -71,11 +72,14 @@ export abstract class RelaxOnCouchBase {
             return json;
         } catch (e: any) {
             if (!e.message) {
+                console.error("No error message, will be added Unknown error");
                 e.message = "RelaxOnCouch: Unknown error";
             }
             if (e.message.indexOf("RelaxOnCouch") === -1) {
+                console.error("Error will be prefixed");
                 e.message = `RelaxOnCouch: ${e.message}`;
             }
+            console.log(`${Date.now() - t0}ms`);
             console.error(e);
             throw e;
         } finally {
