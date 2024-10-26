@@ -34,7 +34,7 @@ export class RelaxOnCouch extends RelaxOnCouchBase {
         if (q !== undefined && !this.isPositiveInt(q)) {
             throw new Error("q must be a positive integer");
         }
-        const queryParams: string[] = [`partitioned=${partitioned}`];
+        const queryParams: string[] = [`partitioned=${partitioned || false}`];
         if (n) queryParams.push(`n=${n}`);
         if (q) queryParams.push(`q=${q}`);
         return await this.request(`${dbName}?${queryParams.join("&")}`, "PUT");
