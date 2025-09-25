@@ -28,6 +28,9 @@ export interface ViewQueryParams {
     limit?: number;
     include_docs?: boolean;
     descending?: boolean;
+    stable?: boolean;
+    update?: boolean | "lazy";
+    update_seq?: boolean;
 }
 
 export interface ViewQueryWithReduceParams extends ViewQueryParams {
