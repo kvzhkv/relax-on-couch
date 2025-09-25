@@ -18,26 +18,19 @@ export interface DocMeta {
 
 export type QueryKey = string | number | object | (number | string | object)[];
 
-export interface AllDocsParams {
+export interface ViewQueryParams {
+    key?: QueryKey;
     keys?: QueryKey[];
     startkey?: QueryKey;
     endkey?: QueryKey;
+    inclusive_end?: boolean;
     skip?: number;
     limit?: number;
     include_docs?: boolean;
     descending?: boolean;
 }
 
-export interface QueryParams {
-    key?: QueryKey;
-    keys?: QueryKey[];
-    skip?: number;
-    limit?: number;
-    startkey?: QueryKey;
-    endkey?: QueryKey;
-    inclusive_end?: boolean;
-    include_docs?: boolean;
-    descending?: boolean;
+export interface ViewQueryWithReduceParams extends ViewQueryParams {
     reduce?: boolean;
     group?: boolean;
     group_level?: number;

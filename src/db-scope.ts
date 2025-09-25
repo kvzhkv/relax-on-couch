@@ -2,10 +2,10 @@ import { RelaxOnCouchBase } from "./common.js";
 import {
     ServerConfigWithDb,
     BasicResponse,
-    AllDocsParams,
+    ViewQueryParams,
+    ViewQueryWithReduceParams,
     ViewResponse,
     MultipleViewResponse,
-    QueryParams,
     SearchParams,
     SearchResponse,
     BasicErrorResponse,
@@ -48,13 +48,13 @@ export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
     }
 
     public async allDocs<D = any>(
-        params: AllDocsParams,
+        params: ViewQueryParams,
     ): Promise<ViewResponse<D, string, { rev: string }>> {
         return await this.request(`${this.dbName}/_all_docs`, "POST", params);
     }
 
     public async allDocsQueries<D = any>(
-        queries: AllDocsParams[],
+        queries: ViewQueryParams[],
     ): Promise<MultipleViewResponse<D, string, { rev: string }>> {
         return await this.request(`${this.dbName}/_all_docs/queries`, "POST", {
             queries,
@@ -63,7 +63,7 @@ export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
 
     public async query<D = any, K = any, V = any>(
         path: string,
-        params: QueryParams,
+        params: ViewQueryWithReduceParams,
     ): Promise<ViewResponse<D, K, V>> {
         return await this.request(
             `${this.dbName}/${this.makeDDocPath(path)}`,
@@ -74,7 +74,7 @@ export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
 
     public async queries<D = any, K = any, V = any>(
         path: string,
-        queries: QueryParams[],
+        queries: ViewQueryWithReduceParams[],
     ): Promise<MultipleViewResponse<D, K, V>> {
         return await this.request(
             `${this.dbName}/${this.makeDDocPath(path)}/queries`,
