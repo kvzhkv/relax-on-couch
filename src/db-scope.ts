@@ -24,14 +24,6 @@ export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
         return this.baseUrl + this.dbName;
     }
 
-    private makeDDocPath(
-        path: string,
-        indexType: "view" | "search" = "view",
-    ): string {
-        const [designDocId, indexName] = path.split("/");
-        return `_design/${designDocId}/_${indexType}/${indexName}`;
-    }
-
     public async get<D>(docId: string): Promise<D> {
         return await this.request(`${this.dbName}/${docId}`, "GET");
     }
@@ -62,33 +54,36 @@ export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
     }
 
     public async query<D = any, K = any, V = any>(
-        path: string,
+        ddoc: string,
+        view: string,
         params: ViewQueryWithReduceParams,
     ): Promise<ViewResponse<D, K, V>> {
         return await this.request(
-            `${this.dbName}/${this.makeDDocPath(path)}`,
+            `${this.dbName}/_design/${ddoc}/_view/${view}`,
             "POST",
             params,
         );
     }
 
     public async queries<D = any, K = any, V = any>(
-        path: string,
+        ddoc: string,
+        view: string,
         queries: ViewQueryWithReduceParams[],
     ): Promise<MultipleViewResponse<D, K, V>> {
         return await this.request(
-            `${this.dbName}/${this.makeDDocPath(path)}/queries`,
+            `${this.dbName}/_design/${ddoc}/_view/${view}/queries`,
             "POST",
             { queries },
         );
     }
 
     public async search<D>(
-        path: string,
+        ddoc: string,
+        index: string,
         params: SearchParams,
     ): Promise<SearchResponse<D>> {
         return await this.request(
-            `${this.dbName}/${this.makeDDocPath(path, "search")}`,
+            `${this.dbName}/_design/${ddoc}/_search/${index}`,
             "POST",
             params,
         );
