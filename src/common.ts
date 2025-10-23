@@ -33,7 +33,7 @@ export abstract class RelaxOnCouchBase {
             );
         }, this.timeout);
         try {
-            const res = await fetch(`${this.baseUrl}${path}`, {
+            const response = await fetch(`${this.baseUrl}${path}`, {
                 method,
                 headers: {
                     "Content-Type": "application/json",
@@ -44,28 +44,34 @@ export abstract class RelaxOnCouchBase {
                 signal: controller.signal,
             });
 
-            const contentType = res.headers.get("Content-Type");
+            const contentType = response.headers.get("Content-Type");
 
             if (!contentType || !contentType.includes("application/json")) {
-                const text = await res.text();
-                console.error(text);
-                throw new Error(
-                    `RelaxOnCouch: upsupported Content-Type, expected application/json, recieved ${
-                        contentType || "null"
-                    }`,
+                const text = await response.text();
+                throw new RelaxOnCouchError(
+                    `Wrong Content-Type, expected application/json`,
+                    {
+                        method,
+                        path,
+                        responseBody: text,
+                        responseHeaders: response.headers,
+                        statusCode: response.status,
+                    },
                 );
             }
 
-            const json: any = await res.json();
+            const responseBody: any = await response.json();
 
-            if (json.error) {
-                const error = new Error(`RelaxOnCouch: ${json.error}`);
-                (error as any).status = res.status;
-                (error as any).reason = json.reason;
-                throw error;
+            if (responseBody.error) {
+                throw new RelaxOnCouchError(responseBody.error, {
+                    method,
+                    path,
+                    responseBody,
+                    statusCode: response.status,
+                });
             }
 
-            return json;
+            return responseBody;
         } catch (e: unknown) {
             if (e instanceof RelaxOnCouchError) throw e;
             throw new RelaxOnCouchError("Request error", {
