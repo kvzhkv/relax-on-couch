@@ -19,7 +19,7 @@ export abstract class RelaxOnCouchBase {
 
     protected async request<T>(
         path: string,
-        method: string,
+        method: "HEAD" | "GET" | "POST" | "PUT" | "DELETE",
         params?: object,
     ): Promise<T> {
         const controller = new AbortController();
