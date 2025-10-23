@@ -61,18 +61,13 @@ export abstract class RelaxOnCouchBase {
             }
 
             return json;
-        } catch (e: any) {
-            if (!e.message) {
-                console.error("No error message, will be added Unknown error");
-                e.message = "RelaxOnCouch: Unknown error";
-            }
-            if (e.message.indexOf("RelaxOnCouch") === -1) {
-                console.error("Error will be prefixed");
-                e.message = `RelaxOnCouch: ${e.message}`;
-            }
-            console.log(`${Date.now() - t0}ms`);
-            console.error(e);
-            throw e;
+        } catch (e: unknown) {
+            if (e instanceof RelaxOnCouchError) throw e;
+            throw new RelaxOnCouchError("Request error", {
+                method,
+                path,
+                cause: e,
+            });
         } finally {
             clearTimeout(timeout);
         }
