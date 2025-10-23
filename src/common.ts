@@ -1,3 +1,4 @@
+import { RelaxOnCouchError } from "./error.js";
 import { ServerConfig } from "./models.js";
 
 export abstract class RelaxOnCouchBase {
@@ -24,9 +25,13 @@ export abstract class RelaxOnCouchBase {
     ): Promise<T> {
         const controller = new AbortController();
         const timeout = setTimeout(() => {
-            controller.abort();
+            controller.abort(
+                new RelaxOnCouchError(`Request timeout ${this.timeout}ms`, {
+                    path,
+                    method,
+                }),
+            );
         }, this.timeout);
-        const t0 = Date.now();
         try {
             const res = await fetch(`${this.baseUrl}${path}`, {
                 method,
