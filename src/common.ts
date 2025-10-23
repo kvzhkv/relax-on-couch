@@ -32,6 +32,7 @@ export abstract class RelaxOnCouchBase {
                 method,
                 headers: {
                     "Content-Type": "application/json",
+                    Accept: "application/json",
                     Authorization: this.auth,
                 },
                 body: params ? JSON.stringify(params) : undefined,
