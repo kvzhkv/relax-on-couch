@@ -89,6 +89,19 @@ export class RelaxOnCouchDbScope extends RelaxOnCouchBase {
         );
     }
 
+    public async update<R = any>(
+        ddoc: string,
+        funcName: string,
+        docId: string,
+        payload: object,
+    ): Promise<R> {
+        return await this.request(
+            `${this.dbName}/_design/${ddoc}/_update/${funcName}/${docId}`,
+            "PUT",
+            payload,
+        );
+    }
+
     public async bulkDocs<D>(
         docs: D[],
     ): Promise<(BasicResponse | BasicErrorResponse)[]> {
