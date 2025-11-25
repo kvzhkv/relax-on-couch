@@ -41,7 +41,7 @@ export interface ViewQueryWithReduceParams extends ViewQueryParams {
 
 export interface SearchParams {
     query: string;
-    sort?: string;
+    sort?: string | string[];
     limit?: number;
     include_docs?: boolean;
     bookmark?: string;
