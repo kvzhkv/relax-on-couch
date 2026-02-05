@@ -44,6 +44,10 @@ export class RelaxOnCouch extends RelaxOnCouchBase {
         return await this.request(dbName, "DELETE");
     }
 
+    public async uuids(count: number = 1): Promise<{ uuids: string[] }> {
+        return await this.request(`_uuids?count=${count}`, "GET");
+    }
+
     public useDb(dbName: string) {
         return new RelaxOnCouchDbScope({ ...this.serverConfig, dbName });
     }
