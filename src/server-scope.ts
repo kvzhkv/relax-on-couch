@@ -4,6 +4,7 @@ import {
     ServerConfig,
     LuceneAnalyzer,
     SearchAnalyzeResponse,
+    ServerInfoResponse,
 } from "./models.js";
 
 export class RelaxOnCouch extends RelaxOnCouchBase {
@@ -12,6 +13,9 @@ export class RelaxOnCouch extends RelaxOnCouchBase {
     constructor(config: ServerConfig) {
         super(config);
         this.serverConfig = config;
+    }
+    public async info(): Promise<ServerInfoResponse> {
+        return await this.request("", "GET");
     }
 
     private isPositiveInt(v: number): boolean {

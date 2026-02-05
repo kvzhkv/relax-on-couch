@@ -11,6 +11,18 @@ export interface ServerConfigWithDb extends ServerConfig {
     dbName: string;
 }
 
+export interface ServerInfoResponse {
+    couchdb: string;
+    version: string;
+    git_sha: string;
+    uuid: string;
+    features: string[];
+    vendor: {
+        name: string;
+        version?: string;
+    };
+}
+
 export interface DocMeta {
     _id: string;
     _rev?: string;
