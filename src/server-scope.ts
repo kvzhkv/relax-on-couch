@@ -18,6 +18,10 @@ export class RelaxOnCouch extends RelaxOnCouchBase {
         return Number.isInteger(v) && v > 0;
     }
 
+    public async allDbs(): Promise<string[]> {
+        return await this.request("_all_dbs", "GET");
+    }
+
     public async createDb(
         dbName: string,
         {
