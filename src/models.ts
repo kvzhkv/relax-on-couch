@@ -35,6 +35,8 @@ export interface ViewQueryParams {
     keys?: QueryKey[];
     startkey?: QueryKey;
     endkey?: QueryKey;
+    startkey_docid?: string;
+    endkey_docid?: string;
     inclusive_end?: boolean;
     skip?: number;
     limit?: number;
